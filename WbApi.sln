@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34221.43
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WbApi", "WbApi\WbApi.csproj", "{0A05005B-A1F1-47ED-BC9E-7528449E7591}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0A05005B-A1F1-47ED-BC9E-7528449E7591}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A05005B-A1F1-47ED-BC9E-7528449E7591}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A05005B-A1F1-47ED-BC9E-7528449E7591}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A05005B-A1F1-47ED-BC9E-7528449E7591}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F9A24442-FA8A-4BFC-B1B0-78D5D6EB6AC3}
+	EndGlobalSection
+EndGlobal
