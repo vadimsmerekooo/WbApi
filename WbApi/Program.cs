@@ -21,6 +21,10 @@ static bool MainMenu()
     Console.WriteLine("Console program to search for wildberries product and add it to cart.");
 
 
+    Console.WriteLine("Введите ссылку на карточку товара: ");
+    string productLink = Console.ReadLine();
+
+    Product productMain = new Product(productLink);
 
 
 

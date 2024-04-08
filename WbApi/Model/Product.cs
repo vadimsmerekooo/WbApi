@@ -7,11 +7,22 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json.Nodes;
 using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 
 namespace WbApi.Model
 {
     internal class Product
     {
+        public Product(string productLink)
+        {
+            var regexUrl = "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?";
+            var regex = Regex.Matches(productLink, regexUrl);
+            if (regex.Count > 0)
+            {
+
+            }
+
+        }
         public Product(ulong cod_1s, ulong chrt_id, int quantity)
         {
             this.cod_1s = cod_1s;
