@@ -12,7 +12,7 @@ namespace WbApi.Model
 {
     internal class Product
     {
-        public Product(ulong cod_1s, ulong chrt_id, int quantit)
+        public Product(ulong cod_1s, ulong chrt_id, int quantity)
         {
             this.cod_1s = cod_1s;
             this.chrt_id = chrt_id;
@@ -23,12 +23,13 @@ namespace WbApi.Model
         public ulong cod_1s { get; }
         public ulong chrt_id { get; }
         public int quantity { get; }
-        public int op_type { get; }
-        public ulong client_ts { get; }
-        public int inListIndex { get; set; }
+        public int op_type { get; } = 1;
+        public ulong client_ts { get; private set;  }
+        public int inListIndex { get; set; } = 1;
 
         public async Task<HttpResponseMessage> AddAsync(Config config)
         {
+            this.client_ts = config.client_ts;
             try
             {
                 ASCIIEncoding encoding = new ASCIIEncoding();

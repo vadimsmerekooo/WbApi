@@ -19,6 +19,11 @@ static bool MainMenu()
 {
     Console.Clear();
     Console.WriteLine("Console program to search for wildberries product and add it to cart.");
+
+
+
+
+
     Console.Write("Введите id номер товара: ");
     ulong cod_1s = ulong.Parse(Console.ReadLine());
     Console.Write("Введите option номер товара: ");
