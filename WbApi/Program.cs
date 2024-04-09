@@ -1,65 +1,77 @@
-﻿using System.Net;
+﻿using OpenQA.Selenium.DevTools.V121.Debugger;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using WbApi;
 using WbApi.Model;
 
-
-//new test().Test();
-
+Config config = new Config();
 
 bool showMenu = true;
+
 while (showMenu)
 {
-    MainMenu();
+    config = MainMenu(config);
 }
 
 
-static bool MainMenu()
+static Config MainMenu(Config config)
 {
     Console.Clear();
     Console.WriteLine("Console program to search for wildberries product and add it to cart.");
 
 
-    Console.WriteLine("Введите ссылку на карточку товара: ");
+    Console.Write("Введите ссылку на карточку товара WB: ");
     string productLink = Console.ReadLine();
+    Console.Write("Введите кол-во: ");
+    int count = int.Parse(Console.ReadLine());
+    while(count < 1)
+    {
+        Console.Write("Введите кол-во не менее 1: ");
+        count = int.Parse(Console.ReadLine());
+    }
+    Product product;
+    try
+    {
+        product = new Product(productLink, count);
+    }
+    catch(Exception ex)
+    {
+        Console.WriteLine("Ошибка. " + ex);
+        Console.ReadKey();
+        return config;
+    }
 
-    Product productMain = new Product(productLink);
+    if (String.IsNullOrEmpty(config.token) && String.IsNullOrEmpty(config._wbauid))
+    {
+        Console.Write("Введите токен авторизации (его можно узнать при отправлении запроса на добавления в корзину, в headers: Authorization)! Это обязательный параметр Bearer: ");
+        string token = Console.ReadLine();
+        Console.Write("Введите значение параметра куки -> _wbauid: ");
+        string _wbauid = Console.ReadLine();
 
-
-
-    Console.Write("Введите id номер товара: ");
-    ulong cod_1s = ulong.Parse(Console.ReadLine());
-    Console.Write("Введите option номер товара: ");
-    ulong chrt_id = ulong.Parse(Console.ReadLine());
-    Console.Write("Введите кол-во товара: ");
-    int quantity = int.Parse(Console.ReadLine());
-
-    Product product = new Product(cod_1s, chrt_id, quantity);
-
-
-    Console.Write("Введите токен авторизации Bearer: Bearer ");
-    string token = Console.ReadLine();
-    Console.Write("Введите значение параметра куки -> _wbauid: ");
-    string _wbauid = Console.ReadLine();
-
-    CookieContainer cookie = new CookieContainer();
-    cookie.Add(new Cookie(nameof(_wbauid), _wbauid, "/", "www.wildberries.by"));
-
-    Config config = new Config(token, cookie, product);
+        CookieContainer cookie = new CookieContainer();
+        cookie.Add(new Cookie(nameof(_wbauid), _wbauid, "/", "www.wildberries.by"));
+        config = new Config(token, cookie);
+    }
 
     try
     {
-        var response = product.AddAsync(config);
-        Console.WriteLine(response.Result);
-        Console.WriteLine(response.Exception);
+        var response = product.Add(config);
+        if (response.IsSuccessStatusCode)
+        {
+            Console.WriteLine("Товар успешно добавлен в корзину!");
+        }
+        else
+        {
+            Console.WriteLine("Ошибка добавления товара в корзину!");
+        }
         Console.ReadKey();
     }
-    catch(Exception ex)
+    catch (Exception ex)
     {
         Console.WriteLine("Exception: " + ex);
         Console.ReadKey();
     }
 
-    return true;
+    return config;
 }

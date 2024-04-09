@@ -8,37 +8,64 @@ using System.Threading.Tasks;
 using System.Text.Json.Nodes;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
+using System.Web;
+using HtmlAgilityPack;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 
 namespace WbApi.Model
 {
     internal class Product
     {
-        public Product(string productLink)
+        public Product(string productLink, int quantity)
         {
-            var regexUrl = "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?";
-            var regex = Regex.Matches(productLink, regexUrl);
-            if (regex.Count > 0)
+            if (String.IsNullOrEmpty(productLink))
+                throw new Exception("Ошибка, ссылка пуста или невалидна!");
+
+            var produrctUrl = new Uri(productLink);
+
+
+            ulong card;
+            ulong option;
+            if (productLink != null && ulong.TryParse(HttpUtility.ParseQueryString(produrctUrl.Query).Get("card"), out card) && ulong.TryParse(HttpUtility.ParseQueryString(produrctUrl.Query).Get("option"), out option))
+            {
+                this.cod_1s = card;
+                this.chrt_id = option;
+            }
+            else
             {
 
+                try
+                {
+                    if(produrctUrl.Segments.Count() >= 3)
+                    {
+                        this.cod_1s = ulong.Parse(produrctUrl.Segments[2].Replace("/", ""));
+                        this.chrt_id = ParseWbRu(produrctUrl).Result;
+                    }
+                    if(ulong.TryParse(HttpUtility.ParseQueryString(produrctUrl.Query).Get("card"), out card))
+                    {
+                        this.cod_1s = card;
+                    }
+                    if (cod_1s == 0)
+                    {
+                        throw new Exception("Ошибка чтения ссылки. формат неверен");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Ошибка: {ex.Message}");
+                }
             }
-
-        }
-        public Product(ulong cod_1s, ulong chrt_id, int quantity)
-        {
-            this.cod_1s = cod_1s;
-            this.chrt_id = chrt_id;
-            this.quantity = quantity; 
-            this.op_type = op_type;
-            this.inListIndex = inListIndex;
+            this.quantity = quantity > 0 ? quantity : 1;
         }
         public ulong cod_1s { get; }
         public ulong chrt_id { get; }
         public int quantity { get; }
         public int op_type { get; } = 1;
-        public ulong client_ts { get; private set;  }
+        public ulong client_ts { get; private set; }
         public int inListIndex { get; set; } = 1;
 
-        public async Task<HttpResponseMessage> AddAsync(Config config)
+        public  HttpResponseMessage Add(Config config)
         {
             this.client_ts = config.client_ts;
             try
@@ -63,7 +90,7 @@ namespace WbApi.Model
                     request.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
                     request.Content.Headers.Add("Content-Length", jsonContent.Length.ToString());
 
-                    return await client.SendAsync(request);
+                    return client.Send(request);
                 };
 
 
@@ -71,6 +98,45 @@ namespace WbApi.Model
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка: {ex.Message}");
+            }
+        }
+        public async Task<ulong> ParseWbRu(Uri url)
+        {
+            try
+            {
+                var options = new ChromeOptions()
+                {
+                    BinaryLocation = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+                };
+                options.AddArguments(new List<string>() { "headless", "disable-gpu" });
+                var browser = new ChromeDriver(options);
+                browser.Navigate().GoToUrl(url);
+                var resultHtml = "";
+                while (true)
+                {
+                    if (browser.PageSource.Replace("/*", "").Contains("product-line__param"))
+                    {
+                        resultHtml = browser.PageSource.Replace("/*", "");
+                        break;
+                    }
+                    Thread.Sleep(100);
+                }
+
+
+                HtmlDocument doc = new HtmlDocument();
+                doc.LoadHtml(resultHtml);
+                IEnumerable<HtmlNode> nodes = doc.DocumentNode.Descendants().Where(n => n.HasClass("product-line__param"));
+
+                if (nodes is null || nodes.Count() == 0)
+                    throw new Exception("Ошибка чтения карточки.");
+                string href = nodes.First().Attributes["href"].Value.Split("?size=")[1];
+
+                return ulong.Parse(href);
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Ошибка чтения ссылки формата wb.ru");
             }
         }
     }
